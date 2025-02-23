@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aether Bot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+    
+
+    <div class="chat-container">
+        <h1 style="font-size: 100px; text-align: center;">Welcome to Aether Bot! 🤖</h1>
+        <div id="chat-window"></div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Type your message to Aether Bot..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()"><svg width="30" height="30" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 21C2.2 21.8 3 22.3 3.8 22C4.6 21.7 20.2 14 20.2 14C21.8 13.3 21.8 11.7 20.2 11L3.8 4C3 3.7 2.2 4.2 2 5V10L14 12L2 14V21Z" fill="white"/>
+            </svg>
+            
+            </button>
+            <button onclick="startSpeechRecognition()">🎙️</button>
+        </div>
+        <div style="text-align: center; color: darkgrey; display: block;">Aether Bot is only in beta, not fully ready</div>
+    </div>
+</body>
+</html>
+
+<style>
+    /* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Fullscreen dark background */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Chat window takes full screen */
+.chat-container {
+    width: 100%;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
+    background: #1e1e1e;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Chat message area (scrollable) */
+#chat-window {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth;
+}
+
+/* Hide scrollbar */
+#chat-window::-webkit-scrollbar {
+    display: none;
+}
+
+/* Message styling */
+.message {
+    max-width: 80%;
+    padding: 12px 16px;
+    margin: 5px;
+    border-radius: 20px;
+    word-wrap: break-word;
+    font-size: 16px;
+}
+
+/* User messages */
+.user {
+    background: #ff9800;
+    align-self: flex-end;
+    color: white;
+    border-radius: 20px 20px 0 20px;
+}
+
+/* AI messages */
+.ai {
+    background: #444;
+    align-self: flex-start;
+    color: white;
+    border-radius: 20px 20px 20px 0;
+}
+
+/* Chat input area (fixed at bottom) */
+
+.input-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: 20px; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    background: black;
+    padding: 10px;
+    border-radius: 25px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Chat input box */
+#user-input {
+    flex-grow: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 30px;
+    outline: none;
+    background: #2a2a2a;
+    color: white;
+    font-size: 16px;
+}
+
+/* Send button */
+button {
+    padding: 14px 18px;
+    margin-left: 10px;
+    border: none;
+    color: white;
+    background-color: rgb(30,30,30);
+    font-size: 16px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: rgb(42,42,42);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 600px) {
+    .message {
+        font-size: 14px;
+    }
+
+    #user-input {
+        font-size: 14px;
+    }
+
+    button {
+        font-size: 14px;
+    }
+}
+
+/* Typing dots animation */
+.typing {
+    display: flex;
+    align-items: center;
+    font-style: italic;
+    color: #bbbbbb;
+    padding: 5px 10px;
+    margin: 5px 0;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 2px;
+    background-color: #bbbbbb;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+}
+
+.dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@keyframes blink {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+
+
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    function getRandomResponse(responses) {
+        return responses[Math.floor(Math.random() * responses.length)];
+    }
+
+    function getResponse(userInput) {
+        let lowerCaseInput = userInput.toLowerCase();
+
+        if (lowerCaseInput.includes("hi") || lowerCaseInput.includes("hello")) {
+            return getRandomResponse(["Hi there! 😊", "Hello! How can I assist you today?", "Hey! What’s up?"]);
+        } else if (lowerCaseInput.includes("how are you")) {
+            return getRandomResponse(["I'm doing great! 😊", "Feeling awesome! How about you?", "I'm fine, thanks for asking!"]);
+        } else if (lowerCaseInput.includes("who made you")) {
+            return "I was created by P. Akshay! 🛠️";
+        } else if (lowerCaseInput.includes("bye")) {
+            return getRandomResponse(["Goodbye! 👋", "See you later!", "Take care and have a great day!"]);
+        } else if (lowerCaseInput.includes("joke")) {
+            return getRandomResponse([
+                "Why don't skeletons fight each other? Because they don't have the guts! 😂",
+                "Why did the math book look sad? It had too many problems. 📚🤣",
+                "What do you call fake spaghetti? An impasta! 🍝😄"
+            ]);
+        } else {
+            return "I'm not sure I understand. Can you rephrase that? 🤔";
+        }
+    }
+
+    function showTypingAnimation() {
+        const chatWindow = document.getElementById("chat-window");
+        const typingIndicator = document.createElement("div");
+        typingIndicator.classList.add("message", "ai", "typing");
+        typingIndicator.innerHTML = `<span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
+        typingIndicator.id = "typing-indicator";
+        chatWindow.appendChild(typingIndicator);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function hideTypingAnimation() {
+        const typingIndicator = document.getElementById("typing-indicator");
+        if (typingIndicator) typingIndicator.remove();
+    }
+
+    function sendMessage() {
+        let userInput = document.getElementById("user-input").value.trim();
+        if (userInput === "") return;
+
+        let chatWindow = document.getElementById("chat-window");
+
+        // Display user message
+        let userMessage = `<div class="message user">${userInput}</div>`;
+        chatWindow.innerHTML += userMessage;
+
+        // Show typing animation
+        showTypingAnimation();
+
+        // Simulate bot response after delay
+        setTimeout(() => {
+            hideTypingAnimation();
+            let response = getResponse(userInput);
+            let botMessage = `<div class="message ai">${response}</div>`;
+            chatWindow.innerHTML += botMessage;
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }, 2000); // 2-second delay
+
+        document.getElementById("user-input").value = "";
+    }
+
+    window.handleKeyPress = function (event) {
+        if (event.key === "Enter") sendMessage();
+    };
+
+    window.sendMessage = sendMessage;
+});
+
+
+</script>
